@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebaseConfig';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -19,6 +19,8 @@ export default function SignUpForm({ onChangeView }: Props) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [address, setAddress] = useState('');
+  const [age, setAge] = useState('');
 
   function validatePassword(value: string) {
     const upper = /[A-Z]/.test(value);
@@ -26,6 +28,22 @@ export default function SignUpForm({ onChangeView }: Props) {
     const symbol = /[^a-zA-Z0-9]/.test(value);
     return value.length >= 8 && upper && number && symbol;
   }
+
+  // Calcular edad automáticamente al cambiar la fecha de nacimiento
+  useEffect(() => {
+    if (birthDate) {
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let years = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        years--;
+      }
+      setAge(years.toString());
+    } else {
+      setAge('');
+    }
+  }, [birthDate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,20 +69,29 @@ export default function SignUpForm({ onChangeView }: Props) {
           nombre: firstName,
           apellido: lastName,
           fecha_nacimiento: birthDate,
+          edad: age,
+          direccion: address,
           correo_electronico: email,
           createdAt: new Date().toISOString(),
         });
       }
       onChangeView('login'); // Redirigir al login tras registro exitoso
-    } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
-        setError('El correo ya está registrado.');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('El correo no es válido.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('La contraseña es demasiado débil.');
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'code' in err) {
+        const code = (err as { code: string }).code;
+        if (code === 'auth/email-already-in-use') {
+          setError('El correo ya está registrado.');
+        } else if (code === 'auth/invalid-email') {
+          setError('El correo no es válido.');
+        } else if (code === 'auth/weak-password') {
+          setError('La contraseña es demasiado débil.');
+        } else if ('message' in err && typeof (err as { message: unknown }).message === 'string') {
+          setError((err as { message: string }).message || 'Error desconocido');
+        } else {
+          setError('Error desconocido');
+        }
       } else {
-        setError(err.message || 'Error desconocido');
+        setError('Error desconocido');
       }
     } finally {
       setLoading(false);
@@ -183,6 +210,40 @@ export default function SignUpForm({ onChangeView }: Props) {
         </div>
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
           La contraseña debe tener mínimo 8 caracteres, al menos 1 mayúscula, 1 número y 1 símbolo.
+        </div>
+      </div>
+
+      {/* Dirección */}
+      <div style={{ width: '100%', marginBottom: 18 }}>
+        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Dirección (opcional)</div>
+        <div className="input-container" style={{ marginBottom: 0 }}>
+          <input
+            type="text"
+            placeholder="Dirección"
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            className="input-field input-email"
+          />
+        </div>
+        <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
+          Puedes agregar o editar tu dirección más adelante en tu perfil.
+        </div>
+      </div>
+      {/* Edad (solo lectura) */}
+      <div style={{ width: '100%', marginBottom: 18 }}>
+        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Edad</div>
+        <div className="input-container" style={{ marginBottom: 0 }}>
+          <input
+            type="text"
+            placeholder="Edad"
+            value={age}
+            readOnly
+            className="input-field input-email"
+            style={{ background: '#f5f5f5', color: '#888' }}
+          />
+        </div>
+        <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
+          Se calcula automáticamente según tu fecha de nacimiento.
         </div>
       </div>
 

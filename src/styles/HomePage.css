@@ -1,0 +1,117 @@
+/* Main page styles */
+.home-page {
+  min-height: 100vh;
+  background: #fff;
+}
+
+/* Navbar styles */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 48px 16px 48px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: #1a2340;
+}
+
+.navbar-nav {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.nav-link {
+  color: #1a2340;
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.logout-button {
+  background: #1a2340;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+/* Main content styles */
+.main-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  gap: 60px;
+}
+
+.welcome-section {
+  max-width: 420px;
+  margin-left: 40px;
+}
+
+.welcome-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a2340;
+  margin-bottom: 18px;
+}
+
+.welcome-description {
+  font-size: 18px;
+  color: #444;
+  margin-bottom: 32px;
+}
+
+.buttons-container {
+  display: flex;
+  gap: 16px;
+}
+
+.explore-button {
+  background: #1a2340;
+  color: #fff;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.learn-more-button {
+  background: #fff;
+  color: #1a2340;
+  border: 1.5px solid #1a2340;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+/* Image container styles */
+.image-container {
+  min-width: 340px;
+  min-height: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px #0001;
+  background: #fafbfc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-image {
+  width: 340px;
+  height: 420px;
+  object-fit: cover;
+}
