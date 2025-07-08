@@ -2,8 +2,41 @@ import React, { useEffect, useState } from 'react';
 import { auth, db } from '../firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/ProfilePage.css';
+
+function Header() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate('/');
+  };
+  const links = [
+    { to: '/home', label: 'Home' },
+    { to: '#', label: 'About' },
+    { to: '/posts', label: 'Posts' },
+    { to: '/management', label: 'Management' },
+    { to: '/profile', label: 'Profile' },
+  ];
+  return (
+    <nav className="navbar">
+      <div className="navbar-brand">Jalasoft</div>
+      <div className="navbar-nav">
+        {links.map(link => (
+          <a
+            key={link.to}
+            href={link.to}
+            className={`nav-link${location.pathname.startsWith(link.to.replace('#','')) && link.to !== '#' ? ' nav-link-active' : ''}`}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+      <button onClick={handleLogout} className="logout-button">Sign Out</button>
+    </nav>
+  );
+}
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -77,7 +110,7 @@ export default function ProfilePage() {
   };
 
   if (loading) return (
-    <div className="loading-container">
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',width:'100vw',background:'#f5f6fa'}}>
       <div className="loading-content">
         <div className="profile-spinner" />
         <span className="loading-text">Cargando...</span>
@@ -87,18 +120,7 @@ export default function ProfilePage() {
 
   return (
     <div className="profile-page">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-brand">Jalasoft</div>
-        <div className="navbar-nav">
-          <a href="/home" className="nav-link">Home</a>
-          <a href="#" className="nav-link">About</a>
-          <a href="#" className="nav-link">Pages</a>
-          <a href="#" className="nav-link">Management</a>
-          <a href="/profile" className="nav-link">Profile</a>
-        </div>
-        <button onClick={handleLogout} className="logout-button">Sign Out</button>
-      </nav>
+      <Header />
       
       {/* Formulario de perfil */}
       <div className="profile-form-container">
