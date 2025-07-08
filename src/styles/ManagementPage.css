@@ -1,0 +1,69 @@
+/* Estilos para la página de Management (Mis Posts) */
+.management-page-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 0;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.management-list-compact {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.management-card-compact {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  padding: 16px 16px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  transition: box-shadow 0.2s;
+}
+.management-card-compact:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+}
+.management-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1877f2;
+  margin-bottom: 2px;
+}
+.management-desc {
+  font-size: 0.97rem;
+  color: #222;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.management-meta {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 4px;
+}
+.management-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.management-actions button {
+  background: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 0.97rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.management-actions button:hover {
+  background: #145db2;
+} 

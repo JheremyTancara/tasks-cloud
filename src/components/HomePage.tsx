@@ -1,9 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { auth, db } from '../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import '../styles/HomePage.css';
+import '../styles/PostsPage.css';
+
+function Header() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate('/');
+  };
+  const links = [
+    { to: '/home', label: 'Home' },
+    { to: '#', label: 'About' },
+    { to: '/posts', label: 'Posts' },
+    { to: '/management', label: 'Management' },
+    { to: '/profile', label: 'Profile' },
+  ];
+  return (
+    <nav className="navbar">
+      <div className="navbar-brand">Jalasoft</div>
+      <div className="navbar-nav">
+        {links.map(link => (
+          <a
+            key={link.to}
+            href={link.to}
+            className={`nav-link${location.pathname.startsWith(link.to.replace('#','')) && link.to !== '#' ? ' nav-link-active' : ''}`}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+      <button onClick={handleLogout} className="logout-button">Sign Out</button>
+    </nav>
+  );
+}
 
 export default function HomePage() {
   const [user, setUser] = useState<any>(null);
@@ -34,18 +68,7 @@ export default function HomePage() {
 
   return (
     <div className="home-page">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-brand">Jalasoft</div>
-        <div className="navbar-nav">
-          <a href="/home" className="nav-link">Home</a>
-          <a href="#" className="nav-link">About</a>
-          <a href="#" className="nav-link">Pages</a>
-          <a href="#" className="nav-link">Management</a>
-          <a href="/profile" className="nav-link">Profile</a>
-        </div>
-        <button onClick={handleLogout} className="logout-button">Sign Out</button>
-      </nav>
+      <Header />
       
       {/* Main content */}
       <div className="main-content">
