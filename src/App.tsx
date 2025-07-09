@@ -6,6 +6,8 @@ import PostsPage from './components/PostsPage';
 import ManagementPage from './components/ManagementPage';
 import PostDetail from './components/PostDetail';
 import AboutPage from './components/AboutPage';
+import FollowingPage from './components/FollowingPage';
+import NotificationsPage from './components/NotificationsPage';
 
 export default function App() {
   return (
@@ -18,6 +20,8 @@ export default function App() {
         <Route path="/management" element={<ManagementPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/posts/:postId" element={<PostDetail />} />
+        <Route path="/following" element={<FollowingPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Routes>
     </BrowserRouter>
   );

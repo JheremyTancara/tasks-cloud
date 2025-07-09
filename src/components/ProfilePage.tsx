@@ -4,39 +4,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/ProfilePage.css';
-
-function Header() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
-  };
-  const links = [
-    { to: '/home', label: 'Home' },
-    { to: '#', label: 'About' },
-    { to: '/posts', label: 'Posts' },
-    { to: '/management', label: 'Management' },
-    { to: '/profile', label: 'Profile' },
-  ];
-  return (
-    <nav className="navbar">
-      <div className="navbar-brand">Jalasoft</div>
-      <div className="navbar-nav">
-        {links.map(link => (
-          <a
-            key={link.to}
-            href={link.to}
-            className={`nav-link${location.pathname.startsWith(link.to.replace('#','')) && link.to !== '#' ? ' nav-link-active' : ''}`}
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
-      <button onClick={handleLogout} className="logout-button">Sign Out</button>
-    </nav>
-  );
-}
+import Header from './Header';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);

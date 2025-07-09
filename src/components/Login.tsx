@@ -93,3 +93,4 @@ function translateError(error: string) {
   if (error.includes('correo')) return 'Invalid email or password.';
   return error;
 }
+ 

@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/ManagementPage.css';
 import { FaRegUserCircle, FaTrashAlt } from 'react-icons/fa';
+import Header from './Header';
 
 function truncate(text: string, max: number) {
   return text.length > max ? text.slice(0, max) + '...' : text;
@@ -32,39 +33,6 @@ function PrivacySelector({ value, onChange }) {
         </div>
       )}
     </div>
-  );
-}
-
-function Header() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const handleLogout = async () => {
-    await auth.signOut();
-    navigate('/');
-  };
-  const links = [
-    { to: '/home', label: 'Home' },
-    { to: '#', label: 'About' },
-    { to: '/posts', label: 'Posts' },
-    { to: '/management', label: 'Management' },
-    { to: '/profile', label: 'Profile' },
-  ];
-  return (
-    <nav className="navbar">
-      <div className="navbar-brand">Jalasoft</div>
-      <div className="navbar-nav">
-        {links.map(link => (
-          <a
-            key={link.to}
-            href={link.to}
-            className={`nav-link${location.pathname.startsWith(link.to.replace('#','')) && link.to !== '#' ? ' nav-link-active' : ''}`}
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
-      <button onClick={handleLogout} className="logout-button">Sign Out</button>
-    </nav>
   );
 }
 
@@ -140,7 +108,7 @@ export default function ManagementPage() {
                 <FaRegUserCircle style={{fontSize:'5rem', marginLeft:'-18rem', color:'#1877f2',display:'block'}} />
               </div>
               <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginTop:'-6.7rem', marginLeft:'7rem', alignItems:'flex-start',flex:1,paddingLeft:'16px'}}>
-                <div style={{fontWeight:700,fontSize:'1.3rem',color:'#1877f2',marginBottom:'6px',lineHeight:'1.3'}}>{post.title}</div>
+                <div style={{fontWeight:700,fontSize:'1.08rem',color:'#1877f2',marginBottom:'6px',lineHeight:'1.3'}}>{post.title}</div>
                 <div style={{fontSize:'1rem',color:'#666',marginBottom:'6px',lineHeight:'1.4'}}>{truncate(post.description, 60)}</div>
                 <div style={{fontSize:'0.9rem',color:'#888',lineHeight:'1.2'}}>{post.createdAt?.toDate?.().toLocaleString?.() || ''}</div>
               </div>
@@ -150,8 +118,8 @@ export default function ManagementPage() {
       </div>
       {selectedPost && (
         <div className="create-post-modal" onClick={()=>setSelectedPost(null)}>
-          <div className="create-post-content" style={{minWidth:'340px',maxWidth:'95vw'}} onClick={e=>e.stopPropagation()}>
-            <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+          <div className="create-post-content" style={{minWidth:'340px',maxWidth:'800px',width:'100%',margin:'0 auto',maxHeight:'720px',padding:'32px 32px 18px 32px',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'-10px'}}>
               <FaRegUserCircle style={{fontSize:'2.1rem',color:'#1877f2'}} />
               <span style={{fontWeight:600}}>{selectedPost.userName}</span>
             </div>
@@ -160,11 +128,11 @@ export default function ManagementPage() {
               <span className="privacy-icon-large" title={selectedPost.privacy}>{selectedPost.privacy === 'public' ? '🌐' : selectedPost.privacy === 'private' ? '🔒' : '👥'}</span>
             </div>
             <p className="post-description">{selectedPost.description}</p>
-            {selectedPost.imageUrl && <img src={selectedPost.imageUrl} alt="Post" className="post-image-centered" />}
-            <div className="post-meta-centered">
+            {selectedPost.imageUrl && <img src={selectedPost.imageUrl} alt="Post" style={{display:'block',margin:'-10px auto',maxWidth:'750px',maxHeight:'380px',width:'100%',height:'auto',borderRadius:'12px',objectFit:'cover'}} />}
+            <div className="post-meta-centered" style={{marginTop:'10px',marginBottom:'4px'}}>
               <span>{selectedPost.createdAt?.toDate?.().toLocaleString?.() || ''}</span>
             </div>
-            <div className="post-actions-centered">
+            <div className="post-actions-centered" style={{marginTop:'-10px',marginBottom:'-10px'}}>
               <span className="like-icon" title="Likes">👍</span>
               <span className="like-count">{selectedPost.likes?.length || 0}</span>
               <span className="dislike-icon" title="Dislikes">👎</span>
@@ -172,7 +140,7 @@ export default function ManagementPage() {
             </div>
             {/* Comentarios */}
             <CommentSection postId={selectedPost.id} user={user} showAll={false} />
-            <button onClick={()=>setSelectedPost(null)} style={{marginTop:'12px',background:'#888'}}>Close</button>
+            <button onClick={()=>setSelectedPost(null)} style={{marginTop:'0px',background:'#888'}}>Close</button>
           </div>
         </div>
       )}
@@ -215,7 +183,7 @@ function CommentSection({ postId, user, showAll = false }: { postId: string; use
   }
 
   return (
-    <div className="comments-section">
+    <div className="comments-section" style={{marginTop:'8px',marginBottom:'8px'}}>
       <div className="comments-list">
         {visibleComments.map(c => (
           <div
