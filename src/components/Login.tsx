@@ -76,8 +76,20 @@ export default function Login() {
         </span>
         Login with Facebook
       </button>
+
+      {/* Texto de ayuda en inglés */}
+      <p className="login-help" style={{marginTop:16, color:'#555', fontSize:14, textAlign:'center'}}>
+        Sign in using your email. If you forgot your password, <a href="#" style={{color:'#1877f2', textDecoration:'underline'}}>click here to recover it</a>.
+      </p>
       
-      {error && <p className="login-error">{error}</p>}
+      {error && <p className="login-error">{translateError(error)}</p>}
     </div>
   );
+}
+
+// Función para traducir errores
+function translateError(error: string) {
+  if (error.includes('Error desconocido')) return 'Unknown error.';
+  if (error.includes('correo')) return 'Invalid email or password.';
+  return error;
 }

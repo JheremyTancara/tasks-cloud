@@ -113,7 +113,7 @@ export default function ProfilePage() {
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',width:'100vw',background:'#f5f6fa'}}>
       <div className="loading-content">
         <div className="profile-spinner" />
-        <span className="loading-text">Cargando...</span>
+        <span className="loading-text">Loading...</span>
       </div>
     </div>
   );
@@ -124,10 +124,10 @@ export default function ProfilePage() {
       
       {/* Formulario de perfil */}
       <div className="profile-form-container">
-        <h2 className="profile-title">Mi Perfil</h2>
+        <h2 className="profile-title">My Profile</h2>
         <form onSubmit={handleSave}>
           <div className="form-group">
-            <label className="form-label">Nombre(s)</label>
+            <label className="form-label">First Name(s)</label>
             <input 
               type="text" 
               name="nombre" 
@@ -138,7 +138,7 @@ export default function ProfilePage() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Apellido(s)</label>
+            <label className="form-label">Last Name(s)</label>
             <input 
               type="text" 
               name="apellido" 
@@ -149,7 +149,7 @@ export default function ProfilePage() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Fecha de nacimiento</label>
+            <label className="form-label">Birthdate</label>
             <input 
               type="date" 
               name="fecha_nacimiento" 
@@ -160,7 +160,7 @@ export default function ProfilePage() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Edad</label>
+            <label className="form-label">Age</label>
             <input 
               type="text" 
               name="edad" 
@@ -171,7 +171,7 @@ export default function ProfilePage() {
           </div>
           <div className="form-group">
             <label className="form-label">
-              Dirección <span className="optional-text">(opcional)</span>
+              Address <span className="optional-text">(optional)</span>
             </label>
             <input 
               type="text" 
@@ -183,13 +183,14 @@ export default function ProfilePage() {
           </div>
           {error && <div className="error-message">{error}</div>}
           <button type="submit" disabled={saving} className="save-button">
-            {saving ? 'Guardando...' : 'Guardar cambios'}
+            {saving ? 'Saving...' : 'Save changes'}
           </button>
           <button type="button" onClick={() => navigate('/home')} className="back-button">
-            Volver al Home
+            Back to Home
           </button>
         </form>
       </div>
     </div>
   );
 }
+ 

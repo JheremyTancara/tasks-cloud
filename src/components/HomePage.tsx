@@ -74,14 +74,14 @@ export default function HomePage() {
       <div className="main-content">
         <div className="welcome-section">
           <h1 className="welcome-title">
-            ¡Bienvenido{userData && userData.nombre ? `, ${userData.nombre}` : ''}!
+            Welcome{userData && userData.nombre ? `, ${userData.nombre}` : ''}!
           </h1>
           <p className="welcome-description">
-            Esta es la plataforma interna de Jalasoft. Explora las secciones del menú para conocer más sobre la empresa y gestiona tu perfil en la sección "Profile".
+            This is Jalasoft's internal platform. Explore the menu sections to learn more about the company and manage your profile in the "Profile" section.
           </p>
           <div className="buttons-container">
-            <a href="#" className="explore-button">Explorar</a>
-            <a href="#" className="learn-more-button">Saber más</a>
+            <a href="#" className="explore-button">Explore</a>
+            <a href="#" className="learn-more-button">Learn more</a>
           </div>
         </div>
         <div className="image-container">
@@ -95,3 +95,4 @@ export default function HomePage() {
     </div>
   );
 }
+ 

@@ -219,17 +219,10 @@ export default function LoginForm({ onChangeView }: Props) {
           </div>
         )}
         
-        <div className="forgot-password-text">
-          Inicia sesión utilizando tu correo electrónico. Si olvidaste tu contraseña, haz clic{' '}
-          <button 
-            type="button" 
-            onClick={() => onChangeView('forgot')} 
-            className="forgot-password-link"
-          >
-            aquí
-          </button>{' '}
-          para recuperarla.
-        </div>
+        {/* Texto de ayuda debajo del login */}
+        <p className="login-help" style={{marginTop:4, marginBottom:18, color:'#555', fontSize:14, textAlign:'left', marginLeft:8}}>
+          Sign in using your email. If you forgot your password, <span style={{color:'#1877f2', textDecoration:'underline', cursor:'pointer'}} onClick={()=>onChangeView('forgot')}>click here to recover it</span>.
+        </p>
         
         <button type="submit" disabled={loading} className="login-button">
           {loading ? 'Loading...' : 'Login'}
