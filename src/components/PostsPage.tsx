@@ -159,7 +159,7 @@ function CommentSection({ postId, user }: { postId: string; user: any }) {
           placeholder="Escribe un comentario..."
           maxLength={200}
         />
-        <button type="submit">Comentar</button>
+        <button type="submit">Comment</button>
       </form>
     </div>
   );
@@ -172,6 +172,8 @@ export default function PostsPage() {
   const [form, setForm] = useState<{ title: string; description: string; imageUrl: string; privacy: string }>({ title: '', description: '', imageUrl: '', privacy: 'public' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
+  // 1. Agregar estado para el archivo de imagen
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -202,18 +204,38 @@ export default function PostsPage() {
     setShowForm(true);
   };
 
+  // 2. Modificar handleFormChange para ignorar imageUrl (solo para texto y textarea)
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (e.target.name === 'imageUrl') return; // Ya no usamos imageUrl directo
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // 3. Nueva función para subir imagen a Cloudinary
+  async function uploadImageToCloudinary(file: File): Promise<string> {
+    const url = 'https://api.cloudinary.com/v1_1/dyhuugw7d/image/upload';
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'ImagePost'); // Respeta la mayúscula inicial
+    const res = await fetch(url, { method: 'POST', body: formData });
+    const data = await res.json();
+    console.log('Cloudinary response:', data);
+    if (!data.secure_url) throw new Error('Error uploading image');
+    return data.secure_url;
+  }
+
+  // 4. Modificar handleSubmit para subir la imagen si hay archivo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    let imageUrl = form.imageUrl;
+    if (imageFile) {
+      imageUrl = await uploadImageToCloudinary(imageFile);
+    }
     if (editingId) {
       await updateDoc(doc(db, 'posts', editingId), {
         title: form.title,
         description: form.description,
-        imageUrl: form.imageUrl,
+        imageUrl,
         privacy: form.privacy,
         updatedAt: new Date(),
       });
@@ -223,7 +245,7 @@ export default function PostsPage() {
         userName: user.displayName || user.email,
         title: form.title,
         description: form.description,
-        imageUrl: form.imageUrl,
+        imageUrl,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         likes: [],
@@ -233,6 +255,7 @@ export default function PostsPage() {
     }
     setShowForm(false);
     setForm({ title: '', description: '', imageUrl: '', privacy: 'public' });
+    setImageFile(null);
     setEditingId(null);
   };
 
@@ -284,23 +307,30 @@ export default function PostsPage() {
         })}
       </div>
       <div className="create-post-bottom">
-        <button onClick={openCreateModal}>Crear Post</button>
+        <button onClick={openCreateModal}>Create Post</button>
       </div>
       {showForm && (
         <div className="create-post-modal">
           <div className="create-post-content">
-            <h3>{editingId ? 'Editar post' : 'Crear nuevo post'}</h3>
+            <h3>{editingId ? 'Edit post' : 'Create new post'}</h3>
             <form onSubmit={handleSubmit} className="post-form">
-              <input name="title" value={form.title} onChange={handleFormChange} placeholder="Título" required maxLength={80} />
-              <textarea name="description" value={form.description} onChange={handleFormChange} placeholder="Descripción" required maxLength={500} />
-              <input name="imageUrl" value={form.imageUrl} onChange={handleFormChange} placeholder="URL de imagen (opcional)" />
+              <input name="title" value={form.title} onChange={handleFormChange} placeholder="Title" required maxLength={80} />
+              <textarea name="description" value={form.description} onChange={handleFormChange} placeholder="Description" required maxLength={500} />
+              {/* Input de archivo para imagen */}
+              <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
+              {/* Mostrar nombre de archivo seleccionado o imagen previa si edita */}
+              {imageFile ? (
+                <div style={{fontSize:'0.9em',color:'#1976d2',marginBottom:'4px'}}>Selected image: {imageFile.name}</div>
+              ) : (form.imageUrl && editingId && (
+                <div style={{fontSize:'0.9em',color:'#888',marginBottom:'4px'}}>Current image: <a href={form.imageUrl} target="_blank" rel="noopener noreferrer">View</a></div>
+              ))}
               <div style={{display:'flex',alignItems:'center',gap:'8px',margin:'8px 0'}}>
-                <span>Privacidad:</span>
+                <span>Privacy:</span>
                 <PrivacySelector value={form.privacy} onChange={v=>setForm(f=>({...f,privacy:v}))} />
               </div>
-              <button type="submit">{editingId ? 'Guardar cambios' : 'Publicar'}</button>
+              <button type="submit">{editingId ? 'Save changes' : 'Publish'}</button>
             </form>
-            <button onClick={() => { setShowForm(false); setEditingId(null); }} style={{background:'#888',marginTop:'8px'}}>Cancelar</button>
+            <button onClick={() => { setShowForm(false); setEditingId(null); }} style={{background:'#888',marginTop:'8px'}}>Cancel</button>
           </div>
         </div>
       )}

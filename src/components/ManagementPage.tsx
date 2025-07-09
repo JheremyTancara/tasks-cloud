@@ -129,17 +129,17 @@ export default function ManagementPage() {
   return (
     <div className="management-page-compact">
       <Header />
-      <h2 style={{fontSize:'2.3rem',margin:'48px 0 32px 0',textAlign:'center'}}>Mis Jala Posts</h2>
+      <h2 style={{fontSize:'2.3rem',margin:'48px 0 32px 0',textAlign:'center'}}>My Jala Posts</h2>
       <div className="management-list-compact">
         {posts.length === 0 ? (
-          <div style={{textAlign:'center',color:'#888',marginTop:'48px',fontSize:'1.2rem'}}>No tienes posts aún.</div>
+          <div style={{textAlign:'center',color:'#888',marginTop:'48px',fontSize:'1.2rem'}}>You have no posts yet.</div>
         ) : (
           posts.map(post => (
             <div key={post.id} className="management-card-compact" onClick={() => setSelectedPost(post)} style={{cursor:'pointer',display:'flex',alignItems:'center',gap:'24px',minHeight:'70px', width:'600px', marginLeft:'-7rem',padding:'16px',backgroundColor:'#fff',borderRadius:'8px',boxShadow:'0 1px 3px rgba(0,0,0,0.1)'}}>
               <div style={{flexShrink:0,display:'flex',alignItems:'center'}}>
-                <FaRegUserCircle style={{fontSize:'5rem', marginLeft:'-18rem', marginTop:'-0.3rem', color:'#1877f2',display:'block'}} />
+                <FaRegUserCircle style={{fontSize:'5rem', marginLeft:'-18rem', color:'#1877f2',display:'block'}} />
               </div>
-              <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginTop:'-6.7rem', marginLeft:'-14rem', alignItems:'flex-start',flex:1,paddingLeft:'16px'}}>
+              <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginTop:'-6.7rem', marginLeft:'7rem', alignItems:'flex-start',flex:1,paddingLeft:'16px'}}>
                 <div style={{fontWeight:700,fontSize:'1.3rem',color:'#1877f2',marginBottom:'6px',lineHeight:'1.3'}}>{post.title}</div>
                 <div style={{fontSize:'1rem',color:'#666',marginBottom:'6px',lineHeight:'1.4'}}>{truncate(post.description, 60)}</div>
                 <div style={{fontSize:'0.9rem',color:'#888',lineHeight:'1.2'}}>{post.createdAt?.toDate?.().toLocaleString?.() || ''}</div>
@@ -172,7 +172,7 @@ export default function ManagementPage() {
             </div>
             {/* Comentarios */}
             <CommentSection postId={selectedPost.id} user={user} showAll={false} />
-            <button onClick={()=>setSelectedPost(null)} style={{marginTop:'12px',background:'#888'}}>Cerrar</button>
+            <button onClick={()=>setSelectedPost(null)} style={{marginTop:'12px',background:'#888'}}>Close</button>
           </div>
         </div>
       )}

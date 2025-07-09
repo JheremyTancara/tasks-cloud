@@ -98,18 +98,29 @@ export default function SignUpForm({ onChangeView }: Props) {
     }
   };
 
+  // Función para traducir errores
+  function translateError(error: string) {
+    if (error.includes('Las contraseñas no coinciden')) return 'Passwords do not match';
+    if (error.includes('La contraseña debe tener')) return 'Password must be at least 8 characters, with 1 uppercase, 1 number, and 1 symbol.';
+    if (error.includes('El correo ya está registrado')) return 'This email is already registered.';
+    if (error.includes('El correo no es válido')) return 'Invalid email address.';
+    if (error.includes('La contraseña es demasiado débil')) return 'Password is too weak.';
+    if (error.includes('Error desconocido')) return 'Unknown error.';
+    return error;
+  }
+
   return (
     <div className="login-container">
       <h2 className="login-title">Cloud Development</h2>
-      <p className="login-subtitle">Crea tu cuenta para comenzar</p>
+      <p className="login-subtitle">Create your account to get started</p>
 
       {/* Nombre completo */}
       <div style={{ width: '100%', marginBottom: 18 }}>
-        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Nombre Completo</div>
+        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Full Name</div>
         <div className="input-container" style={{ marginBottom: 0 }}>
           <input
             type="text"
-            placeholder="Nombre(s)"
+            placeholder="First Name(s)"
             value={firstName}
             onChange={e => setFirstName(e.target.value)}
             className="input-field input-email"
@@ -117,7 +128,7 @@ export default function SignUpForm({ onChangeView }: Props) {
           />
           <input
             type="text"
-            placeholder="Apellido(s)"
+            placeholder="Last Name(s)"
             value={lastName}
             onChange={e => setLastName(e.target.value)}
             className="input-field input-password"
@@ -125,17 +136,17 @@ export default function SignUpForm({ onChangeView }: Props) {
           />
         </div>
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
-          Escribe tu(s) nombre(s) y apellido(s) como aparecen en tu documento oficial.
+          Enter your first and last name as they appear on your official document.
         </div>
       </div>
 
       {/* Fecha de nacimiento */}
       <div style={{ width: '100%', marginBottom: 18 }}>
-        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Fecha de Nacimiento</div>
+        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Birthdate</div>
         <div className="input-container" style={{ marginBottom: 0 }}>
           <input
             type="date"
-            placeholder="Fecha de nacimiento"
+            placeholder="Birthdate"
             value={birthDate}
             onChange={e => setBirthDate(e.target.value)}
             className="input-field input-email"
@@ -144,17 +155,17 @@ export default function SignUpForm({ onChangeView }: Props) {
           />
         </div>
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
-          Ingresa tu fecha de nacimiento tal como aparece en tu documento de identidad.
+          Enter your birthdate as it appears on your ID.
         </div>
       </div>
 
       {/* Información de contacto */}
       <div style={{ width: '100%', marginBottom: 18 }}>
-        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Información de contacto</div>
+        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Contact Information</div>
         <div className="input-container" style={{ marginBottom: 0 }}>
           <input
             type="email"
-            placeholder="Correo electrónico"
+            placeholder="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             className="input-field input-email"
@@ -162,12 +173,12 @@ export default function SignUpForm({ onChangeView }: Props) {
           />
         </div>
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
-          Te enviaremos todas las notificaciones y recibos a tu correo electrónico.
+          We'll send all notifications and receipts to your email.
         </div>
         <div style={{ position: 'relative', width: '100%' }}>
           <input
             type={showPassword ? 'text' : 'password'}
-            placeholder="Contraseña"
+            placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             className="input-field input-email"
@@ -189,7 +200,7 @@ export default function SignUpForm({ onChangeView }: Props) {
         <div style={{ position: 'relative', width: '100%' }}>
           <input
             type={showConfirm ? 'text' : 'password'}
-            placeholder="Confirmar contraseña"
+            placeholder="Confirm password"
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
             className="input-field input-password"
@@ -209,33 +220,33 @@ export default function SignUpForm({ onChangeView }: Props) {
           </span>
         </div>
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
-          La contraseña debe tener mínimo 8 caracteres, al menos 1 mayúscula, 1 número y 1 símbolo.
+          The password must be at least 8 characters, with 1 uppercase, 1 number, and 1 symbol.
         </div>
       </div>
 
       {/* Dirección */}
       <div style={{ width: '100%', marginBottom: 18 }}>
-        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Dirección (opcional)</div>
+        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Address (optional)</div>
         <div className="input-container" style={{ marginBottom: 0 }}>
           <input
             type="text"
-            placeholder="Dirección"
+            placeholder="Address (optional)"
             value={address}
             onChange={e => setAddress(e.target.value)}
             className="input-field input-email"
           />
         </div>
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
-          Puedes agregar o editar tu dirección más adelante en tu perfil.
+          You can add or edit your address later in your profile.
         </div>
       </div>
       {/* Edad (solo lectura) */}
       <div style={{ width: '100%', marginBottom: 18 }}>
-        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Edad</div>
+        <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 16, color: '#111' }}>Age</div>
         <div className="input-container" style={{ marginBottom: 0 }}>
           <input
             type="text"
-            placeholder="Edad"
+            placeholder="Age"
             value={age}
             readOnly
             className="input-field input-email"
@@ -243,7 +254,7 @@ export default function SignUpForm({ onChangeView }: Props) {
           />
         </div>
         <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
-          Se calcula automáticamente según tu fecha de nacimiento.
+          It is calculated automatically based on your birthdate.
         </div>
       </div>
 
@@ -258,22 +269,22 @@ export default function SignUpForm({ onChangeView }: Props) {
           onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
         >
-          {loading ? 'Registrando...' : 'Aceptar y continuar'}
+          {loading ? 'Signing up...' : 'Sign Up'}
         </button>
-        {error && <div className="error-message" style={{ marginTop: 10 }}>{error}</div>}
+        {error && <div className="error-message" style={{ marginTop: 10 }}>{translateError(error)}</div>}
       </form>
       <div className="signup-text">
-        ¿Ya tienes una cuenta?{' '}
+        Already have an account?{' '}
         <button
           type="button"
           onClick={() => onChangeView('login')}
           className="signup-link"
         >
-          Inicia sesión
+          Sign In
         </button>
       </div>
       <div style={{ fontSize: 12, color: '#888', marginTop: 12, textAlign: 'left' }}>
-        Al seleccionar <b>“Aceptar y continuar”</b>, acepto los términos y condiciones, así como la <a href="#" style={{ color: '#1877f2', textDecoration: 'underline' }}>política de privacidad</a>.
+        By selecting <b>“Sign Up”</b>, I accept the terms and conditions, as well as the <a href="#" style={{ color: '#1877f2', textDecoration: 'underline' }}>privacy policy</a>.
       </div>
     </div>
   );
