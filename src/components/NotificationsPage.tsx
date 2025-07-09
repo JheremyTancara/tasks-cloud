@@ -69,7 +69,7 @@ export default function NotificationsPage() {
                 <div key={n.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 0',borderBottom:'1px solid #eee',background:n.read?'#f7f7f7':'#eaf6ff'}}>
                   <div style={{flex:1}}>
                     <div style={{fontWeight:'bold',fontSize:'1.08em',color:'#1976d2'}}>{n.authorName}</div>
-                    <div style={{color:'#222',fontSize:'1em'}}>published: <span style={{fontWeight:500}}>{n.postTitle}</span></div>
+                    <div style={{color:'#222',fontSize:'1em'}}>{n.message}</div>
                     <div style={{color:'#888',fontSize:'0.93em'}}>{n.createdAt?.toDate?.().toLocaleString?.() || ''}</div>
                   </div>
                   {deletedPosts[n.postId] ? (

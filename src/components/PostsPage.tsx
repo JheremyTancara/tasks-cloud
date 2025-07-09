@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db, auth, followUser, unfollowUser, isFollowing, createPostWithNotifications } from '../firebaseConfig';
+import { db, auth, followUser, unfollowUser, isFollowing, createPostWithNotifications, createNotification } from '../firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -210,6 +210,24 @@ interface User {
   email?: string;
 }
 
+// Lista de malas palabras (puedes expandirla)
+const BAD_WORDS = [
+  'fuck', 'shit', 'bitch', 'asshole', 'idiot', 'dumb', 'stupid',
+  'mierda', 'puta', 'puto', 'cabrón', 'cabron', 'joder', 'coño', 'cojones', 'mamón',
+  'mamada', 'verga', 'chingar', 'pendejo', 'pinche', 'culero', 'zorra', 
+  'maricón', 'maricon', 'gilipollas', 'capullo', 'hijueputa', 'gonorrea', 'malparido',
+  'chimba', 'boludo', 'pelotudo', 'tarado', 'idiota', 'imbécil', 'estúpido', 'tonto',
+  'huevón', 'wey', 'güey', 'pendejada', 'cagada', 'perra', 'jodido', 'carajo', 'chingadazo'
+];
+function moderateText(text: string): string {
+  let result = text;
+  BAD_WORDS.forEach(word => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    result = result.replace(regex, '[redacted]');
+  });
+  return result;
+}
+
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -298,10 +316,12 @@ export default function PostsPage() {
     if (imageFile) {
       imageUrl = await uploadImageToCloudinary(imageFile);
     }
+    const cleanTitle = moderateText(form.title);
+    const cleanDescription = moderateText(form.description);
     if (editingId) {
       await updateDoc(doc(db, 'posts', editingId), {
-        title: form.title,
-        description: form.description,
+        title: cleanTitle,
+        description: cleanDescription,
         imageUrl,
         privacy: form.privacy,
         updatedAt: new Date(),
@@ -310,8 +330,8 @@ export default function PostsPage() {
       await createPostWithNotifications({
         userId: user.uid,
         userName: user.displayName || user.email,
-        title: form.title,
-        description: form.description,
+        title: cleanTitle,
+        description: cleanDescription,
         imageUrl,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -434,6 +454,40 @@ export default function PostsPage() {
     );
   }
 
+  // En PostsPage, agregar función para manejar likes/dislikes
+  const handleLike = async (post: Post) => {
+    if (!user) return;
+    const postRef = doc(db, 'posts', post.id);
+    const hasLiked = post.likes?.includes(user.uid);
+    const hasDisliked = post.dislikes?.includes(user.uid);
+    if (hasLiked) {
+      await updateDoc(postRef, { likes: post.likes.filter((id: string) => id !== user.uid) });
+    } else {
+      await updateDoc(postRef, {
+        likes: [...(post.likes || []).filter((id: string) => id !== user.uid), user.uid],
+        dislikes: (post.dislikes || []).filter((id: string) => id !== user.uid)
+      });
+      // Notificar al autor si no es el mismo usuario
+      if (user.uid !== post.userId) {
+        await createNotification(post.userId, post.id, post.title, user.uid, user.displayName || user.email || '', 'like');
+      }
+    }
+  };
+  const handleDislike = async (post: Post) => {
+    if (!user) return;
+    const postRef = doc(db, 'posts', post.id);
+    const hasDisliked = post.dislikes?.includes(user.uid);
+    const hasLiked = post.likes?.includes(user.uid);
+    if (hasDisliked) {
+      await updateDoc(postRef, { dislikes: post.dislikes.filter((id: string) => id !== user.uid) });
+    } else {
+      await updateDoc(postRef, {
+        dislikes: [...(post.dislikes || []).filter((id: string) => id !== user.uid), user.uid],
+        likes: (post.likes || []).filter((id: string) => id !== user.uid)
+      });
+    }
+  };
+
   return (
     <div className="posts-page-centered">
       <Header />
@@ -482,9 +536,9 @@ export default function PostsPage() {
                 <span>{post.createdAt?.toDate?.().toLocaleString?.() || ''}</span>
               </div>
               <div className="post-actions-centered">
-                <span className="like-icon" title="Likes">👍</span>
+                <span className="like-icon" title="Likes" style={{cursor:'pointer',color:post.likes?.includes(user?.uid||'')?'#1877f2':'#888'}} onClick={()=>handleLike(post)}>👍</span>
                 <span className="like-count">{post.likes?.length || 0}</span>
-                <span className="dislike-icon" title="Dislikes">👎</span>
+                <span className="dislike-icon" title="Dislikes" style={{cursor:'pointer',color:post.dislikes?.includes(user?.uid||'')?'#e74c3c':'#888'}} onClick={()=>handleDislike(post)}>👎</span>
                 <span className="dislike-count">{post.dislikes?.length || 0}</span>
               </div>
               <CommentSection postId={post.id} user={user} />
