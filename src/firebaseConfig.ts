@@ -71,14 +71,21 @@ export async function isFollowing(currentUserId: string, targetUserId: string): 
 }
 
 // Crear notificación para un usuario
-export async function createNotification(targetUserId: string, postId: string, postTitle: string, authorId: string, authorName: string) {
+export async function createNotification(targetUserId: string, postId: string, postTitle: string, authorId: string, authorName: string, type: string = 'new_post') {
+  let message = '';
+  if (type === 'like') {
+    message = `${authorName} liked your post: ${postTitle}`;
+  } else {
+    message = `${authorName} published: ${postTitle}`;
+  }
   const notifRef = collection(db, 'users', targetUserId, 'notifications');
   await addDoc(notifRef, {
-    type: 'new_post',
+    type,
     postId,
     postTitle,
     authorId,
     authorName,
+    message,
     createdAt: serverTimestamp(),
     read: false
   });
