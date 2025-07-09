@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { db, auth } from '../firebaseConfig';
+import { db, auth, followUser, unfollowUser, isFollowing, createPostWithNotifications } from '../firebaseConfig';
 import { collection, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/PostsPage.css';
-import { FaTrashAlt, FaEdit } from 'react-icons/fa';
+import { FaTrashAlt, FaEdit, FaUserPlus, FaUserCheck } from 'react-icons/fa';
+import Header from './Header';
 
 const PRIVACY_OPTIONS = [
   { value: 'public', label: 'Público', icon: '🌐' },
@@ -31,15 +32,32 @@ function PrivacySelector({ value, onChange }: { value: string; onChange: (v: str
   );
 }
 
-function CommentSection({ postId, user }: { postId: string; user: any }) {
-  const [comments, setComments] = useState<any[]>([]);
+interface Comment {
+  id: string;
+  userId: string;
+  userName: string;
+  text: string;
+  createdAt: any;
+}
+
+function CommentSection({ postId, user }: { postId: string; user: User | null }) {
+  const [comments, setComments] = useState<Comment[]>([]);
   const [comment, setComment] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     const q = query(collection(db, 'comments'), orderBy('createdAt', 'asc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setComments(snapshot.docs.filter(doc => doc.data().postId === postId).map(doc => ({ id: doc.id, ...doc.data() })));
+      setComments(snapshot.docs.filter(doc => doc.data().postId === postId).map(doc => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          userId: d.userId || '',
+          userName: d.userName || '',
+          text: d.text || '',
+          createdAt: d.createdAt,
+        };
+      }));
     });
     return () => unsubscribe();
   }, [postId]);
@@ -62,7 +80,7 @@ function CommentSection({ postId, user }: { postId: string; user: any }) {
     return name.split(' ')[0];
   }
 
-  function formatHour(date: any) {
+  function formatHour(date: { toDate: () => Date }) {
     if (!date?.toDate) return '';
     const d = date.toDate();
     const h = d.getHours().toString().padStart(2, '0');
@@ -165,24 +183,73 @@ function CommentSection({ postId, user }: { postId: string; user: any }) {
   );
 }
 
+interface Post {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  createdAt?: any;
+  updatedAt?: any;
+  likes?: string[];
+  dislikes?: string[];
+  privacy?: string;
+}
+interface PopupUser {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  isFollowing: boolean;
+}
+
+interface User {
+  uid: string;
+  displayName?: string;
+  email?: string;
+}
+
 export default function PostsPage() {
-  const [posts, setPosts] = useState<any[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<{ title: string; description: string; imageUrl: string; privacy: string }>({ title: '', description: '', imageUrl: '', privacy: 'public' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
   // 1. Agregar estado para el archivo de imagen
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [popupUser, setPopupUser] = useState<PopupUser | null>(null);
+  const [followMap, setFollowMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) navigate('/');
-      else setUser(currentUser);
+      else setUser({
+        uid: currentUser.uid,
+        displayName: currentUser.displayName || undefined,
+        email: currentUser.email || undefined,
+      });
     });
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribePosts = onSnapshot(q, (snapshot) => {
-      setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setPosts(snapshot.docs.map(docSnap => {
+        const d = docSnap.data();
+        return {
+          id: docSnap.id,
+          userId: d.userId || '',
+          userName: d.userName || '',
+          userEmail: d.userEmail || '',
+          title: d.title || '',
+          description: d.description || '',
+          imageUrl: d.imageUrl || '',
+          createdAt: d.createdAt,
+          updatedAt: d.updatedAt,
+          likes: d.likes || [],
+          dislikes: d.dislikes || [],
+          privacy: d.privacy || 'public',
+        };
+      }));
     });
     return () => { unsubscribeAuth(); unsubscribePosts(); };
   }, [navigate]);
@@ -193,7 +260,7 @@ export default function PostsPage() {
     setShowForm(true);
   };
 
-  const openEditModal = (post: any) => {
+  const openEditModal = (post: Post) => {
     setForm({
       title: post.title,
       description: post.description,
@@ -240,7 +307,7 @@ export default function PostsPage() {
         updatedAt: new Date(),
       });
     } else {
-      await addDoc(collection(db, 'posts'), {
+      await createPostWithNotifications({
         userId: user.uid,
         userName: user.displayName || user.email,
         title: form.title,
@@ -259,6 +326,114 @@ export default function PostsPage() {
     setEditingId(null);
   };
 
+  const handleUserClick = async (userId: string, userName: string, userEmail: string) => {
+    if (!user) return;
+    let following = followMap[userId];
+    if (following === undefined) {
+      following = await isFollowing(user.uid, userId);
+      setFollowMap(fm => ({ ...fm, [userId]: following }));
+    }
+    setPopupUser({ userId, userName, userEmail, isFollowing: following });
+  };
+
+  function FollowIcon({ userId, postUserId }: { userId: string; postUserId: string }) {
+    const following = followMap[postUserId];
+    useEffect(() => {
+      if (userId && postUserId && following === undefined && userId !== postUserId) {
+        isFollowing(userId, postUserId).then(f => setFollowMap(fm => ({ ...fm, [postUserId]: f })));
+      }
+    }, [userId, postUserId, following]);
+    if (!userId || userId === postUserId || following === undefined) return null;
+    return (
+      <span
+        className="follow-icon"
+        style={{marginLeft:'4px',cursor:'pointer',color:following?'#1976d2':'#888',fontSize:'1.2em'}}
+        title={following ? 'Following' : 'Follow me'}
+        onClick={async () => {
+          if (following) {
+            if (window.confirm('Are you sure you want to unfollow this user?')) {
+              await unfollowUser(userId, postUserId);
+              setFollowMap(fm => ({ ...fm, [postUserId]: false }));
+            }
+          } else {
+            await followUser(userId, postUserId);
+            setFollowMap(fm => ({ ...fm, [postUserId]: true }));
+          }
+        }}
+        onMouseOver={e => { e.currentTarget.title = following ? 'Following' : 'Follow me'; }}
+      >
+        {following ? <FaUserCheck /> : <FaUserPlus />}
+      </span>
+    );
+  }
+
+  function UserPopup({ userId, userName, userEmail, currentUserId, onClose, onFollowChange, isFollowingInitial }: {
+    userId: string;
+    userName: string;
+    userEmail: string;
+    currentUserId: string;
+    onClose: () => void;
+    onFollowChange: (following: boolean) => void;
+    isFollowingInitial: boolean;
+  }) {
+    const [following, setFollowing] = useState(isFollowingInitial);
+    const [loading, setLoading] = useState(false);
+    const isSelf = currentUserId === userId;
+    useEffect(() => { setFollowing(isFollowingInitial); }, [isFollowingInitial]);
+    const handleFollow = async () => {
+      setLoading(true);
+      if (following) {
+        if (window.confirm('Are you sure you want to unfollow this user?')) {
+          await unfollowUser(currentUserId, userId);
+          setFollowing(false);
+          onFollowChange(false);
+          setFollowMap(fm => ({ ...fm, [userId]: false }));
+        }
+      } else {
+        await followUser(currentUserId, userId);
+        setFollowing(true);
+        onFollowChange(true);
+        setFollowMap(fm => ({ ...fm, [userId]: true }));
+      }
+      setLoading(false);
+    };
+    return (
+      <div className="user-popup-overlay" onClick={onClose}>
+        <div className="user-popup" onClick={e => e.stopPropagation()}>
+          <button
+            onClick={onClose}
+            className="user-popup-close"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px',width:'100%'}}>
+            <div>
+              <div style={{fontWeight:'bold',fontSize:'1.1em'}}>{userName}</div>
+              <div style={{fontSize:'0.95em',color:'#888'}}>{userEmail}</div>
+            </div>
+            {!isSelf && (
+              <button
+                className="follow-btn"
+                style={{display:'flex',alignItems:'center',gap:'6px',background:following?'#e0e0e0':'#1877f2',color:following?'#1976d2':'#fff',border:'none',borderRadius:'4px',padding:'6px 12px',cursor:'pointer',position:'relative',marginLeft:'auto'}}
+                onClick={handleFollow}
+                disabled={loading}
+                title={following ? 'Following' : 'Follow me'}
+                onMouseOver={e => { e.currentTarget.title = following ? 'Following' : 'Follow me'; }}
+              >
+                {following ? <FaUserCheck /> : <FaUserPlus />}
+                {following ? 'Following' : 'Follow'}
+              </button>
+            )}
+          </div>
+          {isSelf && (
+            <div style={{marginTop:'12px',color:'#e74c3c',fontWeight:'bold',textAlign:'center',width:'100%'}}>You cannot follow yourself.</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="posts-page-centered">
       <Header />
@@ -270,8 +445,19 @@ export default function PostsPage() {
           return (
             <div key={post.id} className="post-card-centered">
               <div className="post-header" style={{position:'relative',display:'flex',alignItems:'center',gap:'10px'}}>
-                <span className="post-user">{post.userName}</span>
+                <span
+                  className="post-user"
+                  style={{cursor:'pointer',color:'#1976d2',textDecoration:'underline'}}
+                  onClick={() => handleUserClick(post.userId, post.userName, post.userEmail || post.userName)}
+                  title="View user info"
+                >
+                  {post.userName}
+                </span>
                 <span className="privacy-icon-large" title={privacyOpt.label}>{privacyOpt.icon}</span>
+                {/* Icono de seguir al lado del privacy */}
+                {user && (
+                  <FollowIcon userId={user.uid} postUserId={post.userId} />
+                )}
                 <div style={{marginLeft:'auto',display:'flex',gap:'8px',alignItems:'center'}}>
                   <span
                     className="icon-action"
@@ -334,39 +520,17 @@ export default function PostsPage() {
           </div>
         </div>
       )}
+      {popupUser && (
+        <UserPopup
+          userId={popupUser.userId}
+          userName={popupUser.userName}
+          userEmail={popupUser.userEmail}
+          currentUserId={user?.uid || ''}
+          onClose={() => setPopupUser(null)}
+          onFollowChange={f => setPopupUser((p: PopupUser | null) => p ? {...p, isFollowing: f} : p)}
+          isFollowingInitial={popupUser.isFollowing}
+        />
+      )}
     </div>
-  );
-}
-
-function Header() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const handleLogout = async () => {
-    await auth.signOut();
-    navigate('/');
-  };
-  const links = [
-    { to: '/home', label: 'Home' },
-    { to: '/about', label: 'About' },
-    { to: '/posts', label: 'Posts' },
-    { to: '/management', label: 'Management' },
-    { to: '/profile', label: 'Profile' },
-  ];
-  return (
-    <nav className="navbar">
-      <div className="navbar-brand">Jalasoft</div>
-      <div className="navbar-nav">
-        {links.map(link => (
-          <a
-            key={link.to}
-            href={link.to}
-            className={`nav-link${location.pathname.startsWith(link.to.replace('#','')) && link.to !== '#' ? ' nav-link-active' : ''}`}
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
-      <button onClick={handleLogout} className="logout-button">Sign Out</button>
-    </nav>
   );
 } 
